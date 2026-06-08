@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from chats import chat_api
 from users import users_api
 from docs import docs_api
-app = FastAPI()
+from database_config import lifespan
+app = FastAPI(lifespan = lifespan)
 
 @app.get('/')
 async def root():
