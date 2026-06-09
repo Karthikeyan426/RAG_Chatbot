@@ -10,7 +10,7 @@ from groq import Groq
 
 router = APIRouter(prefix='/users/user/chats', tags=['chats'])
 
-@router.post('/enquery', status_code = 200)
+@router.post('/query', status_code = 200)
 async def processEnquery(requestData: question_model.QModel, session: SessionDep):
     model = SentenceTransformer("all-MiniLM-L6-v2")
     qEmbedding = model.encode(requestData.question).tolist()
