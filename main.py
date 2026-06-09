@@ -3,6 +3,7 @@ from chats import chat_api
 from users import users_api
 from docs import docs_api
 from database_config import lifespan
+
 app = FastAPI(lifespan = lifespan)
 
 @app.get('/')

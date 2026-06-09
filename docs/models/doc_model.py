@@ -3,5 +3,5 @@ from  datetime import datetime
 from fastapi import UploadFile
 
 class DocModel(BaseModel):
-    userid: str
+    user_id: str
     document: UploadFile

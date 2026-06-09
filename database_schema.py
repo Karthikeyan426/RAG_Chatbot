@@ -24,5 +24,5 @@ class chats(SQLModel, table = True):
     user_id: str = Field(foreign_key = "users.id")
     doc_id: UUID = Field(foreign_key = "docs.id")
     question_content: str = Field(nullable = False)
-    question_embedding: list[float] = Field(nullable = False, sa_column = Column(VECTOR(384)))
+    question_embedding: list[float] = Field(nullable = True, sa_column = Column(VECTOR(384)))
     response_content: str = Field(nullable = False)
