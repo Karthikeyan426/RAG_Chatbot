@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from database_config import SessionDep
-from models.question_model import QModel
+from chats.models import question_model
 from database_schema import chats
 from sentence_transformers import SentenceTransformer
 from sqlmodel import text
@@ -11,18 +11,18 @@ from groq import Groq
 router = APIRouter(prefix='/users/user/chats', tags=['chats'])
 
 @router.post('/enquery', status_code = 200)
-async def processEnquery(requestData: QModel, session: Session = Depends(SessionDep)):
+async def processEnquery(requestData: question_model.QModel, session: SessionDep):
     model = SentenceTransformer("all-MiniLM-L6-v2")
     qEmbedding = model.encode(requestData.question).tolist()
-    similarQ = session.exec(
+    similarQ = session.execute(
         text("""
             SELECT response_content
             FROM chats
-            WHERE 1 - (embedding <=> :question_embedding::vector) > 0.90
-            ORDER BY embedding <=> :question_embedding::vector
+            WHERE 1 - (question_embedding <=> CAST(:q_embedding AS vector)) > 0.90
+            ORDER BY question_embedding <=> CAST(:q_embedding AS vector)
             LIMIT 1
         """),
-        {"embedding": str(qEmbedding)}
+        {"q_embedding": str(qEmbedding)}
     ).first()
 
     if similarQ:
@@ -30,17 +30,17 @@ async def processEnquery(requestData: QModel, session: Session = Depends(Session
             doc_id= requestData.doc_id,
             question_content = requestData.question,
             user_id = requestData.user_id,
-            response_content = similarQ.response_content
+            response_content = similarQ.response_content,
         )
         session.add(chat)
-        await session.commit()
+        session.commit()
         return {"response": similarQ.response_content}
     else:
-        similarChunks = session.exec(
+        similarChunks = session.execute(
         text("""
-            SELECT content, 1 - (embedding <=> :embedding::vector) AS similarity
+            SELECT content, 1 - (embedding <=> CAST(:embedding AS vector))
             FROM chunks
-            ORDER BY embedding <=> :embedding::vector
+            ORDER BY embedding <=> CAST(:embedding AS vector)
             LIMIT :limit
         """),
         {"embedding": str(qEmbedding), "limit": 5}
@@ -71,7 +71,7 @@ async def processEnquery(requestData: QModel, session: Session = Depends(Session
             response_content = receivedResponse
         )
         session.add(chat)
-        await session.commit()
+        session.commit()
 
         return {"response": receivedResponse}
 
@@ -81,17 +81,17 @@ async def processEnquery(requestData: QModel, session: Session = Depends(Session
     
 
 @router.delete('/{chat_id}',status_code = 200)
-async def deleteChat(chat_id: str, session: Session = Depends(SessionDep)):
+async def deleteChat(chat_id: str, session: SessionDep):
     id = chat_id
-    chat = await session.get(chats, id)
-    await session.delete(chat)
-    await  session.commit()
+    chat =   session.get(chats, id)
+    session.delete(chat)
+    session.commit()
     return {"message": "chat deleted", "id": id}
 
 
 
 @router.get('/{chat_id}', status_code = 200)
-async def getChat(chat_id: str, session: Session = Depends(SessionDep)):
+async def getChat(chat_id: str, session: SessionDep):
     id = chat_id
-    chat = await session.get(chats, id)
+    chat =   session.get(chats, id)
     return {"chat_q": chat.question_content, "chat_a": chat.response_content}

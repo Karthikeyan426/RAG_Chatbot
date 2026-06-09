@@ -5,8 +5,7 @@ from fastapi import Depends, FastAPI
 from sqlmodel import create_engine, Session, SQLModel
 from config import settings
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(settings.database_url, connect_args=connect_args)
+engine = create_engine(settings.database_url)
 
 def create_db_and_tables():
     import database_schema 
@@ -24,3 +23,4 @@ app = FastAPI()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     create_db_and_tables()
+    yield
