@@ -32,7 +32,7 @@ async def uploadDoc(doc: DocModel, session: Session = Depends(SessionDep)):
                embedding = converted_embedding,
            )
            session.add(chunk_obj)
-       session.commit()
+       await session.commit()
        return {"message": "document uploaded"}
 
        
