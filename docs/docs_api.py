@@ -1,12 +1,11 @@
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
-from sqlmodel import Session
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from database_config import SessionDep
 from docs.models import doc_model
 from database_schema import docs, chunks
 from docs.helpers import doc_embedding_coversion, doc_text_extraction
 from sentence_transformers import SentenceTransformer
 
-router = APIRouter(prefix="/docs", tags=["docs"])
+router = APIRouter(prefix="/users/user/docs", tags=["docs"])
 
 @router.post('/upload', status_code = 201)
 async def uploadDoc(session: SessionDep, user_id: str = Form(...), document: UploadFile = File(...)):

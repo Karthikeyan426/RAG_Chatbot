@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends
-from sqlmodel import Session
+from fastapi import APIRouter
 from database_config import SessionDep
 from chats.models import question_model
 from database_schema import chats

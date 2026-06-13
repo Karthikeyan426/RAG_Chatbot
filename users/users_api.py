@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session
+from fastapi import APIRouter, HTTPException
 from users.models import user_model
 from database_config import SessionDep
 from database_schema import users
@@ -23,7 +22,7 @@ async def login(requestData: user_model.UserModel, session: SessionDep):
     id = requestData.user_name
     user =   session.get(users, id)
     if not user:
-        raise HTTPException(status_code = 404, detail = "user not exists")
+        raise HTTPException(status_code = 400, detail = "wrong credentials")
     else:
         if user.password == requestData.password:
             return {"message": "login success"}
