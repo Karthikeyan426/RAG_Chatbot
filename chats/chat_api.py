@@ -11,7 +11,7 @@ router = APIRouter(prefix='/users/user/chats', tags=['chats'])
 
 @router.post('/query', status_code = 200)
 async def processEnquery(requestData: question_model.QModel, session: SessionDep):
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    model = SentenceTransformer("all-MiniLM-L6-v2", token = settings.hf_token)
     qEmbedding = model.encode(requestData.question).tolist()
     similarQ = session.execute(
         text("""

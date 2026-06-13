@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     database_host: str
     database_port: int
     groq_api_key: str
+    hf_token: str
     model_config = SettingsConfigDict(env_file = ".env")
 
 settings = Settings()

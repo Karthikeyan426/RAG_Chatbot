@@ -7,7 +7,7 @@ from typing import Optional
 class users(SQLModel, table = True):
     id: str = Field(primary_key = True, default = None)
     password: str = Field(nullable = False)
-    docs: list[docs] = Relationship(back_populates = 'users', cascade_delete = True)
+    docs: list["docs"] = Relationship(back_populates = 'user', cascade_delete = True)
 
 class docs(SQLModel, table = True):
     id: UUID = Field(primary_key = True, default_factory = uuid4)
@@ -15,8 +15,8 @@ class docs(SQLModel, table = True):
     uploaded_at: datetime = Field(default_factory = datetime.now)
     user_id: str = Field(foreign_key = "users.id")
     user: users = Relationship(back_populates = 'docs')
-    chunks: list[chunks] = Relationship(back_populates = 'docs',cascade_delete = True)
-    chats: list[chats] = Relationship(back_populates = 'docs', cascade_delete = True)
+    chunks: list["chunks"] = Relationship(back_populates = 'doc',cascade_delete = True)
+    chats: list["chats"] = Relationship(back_populates = 'doc', cascade_delete = True)
 
 class chunks(SQLModel, table = True):
     id: UUID = Field(primary_key = True, default_factory = uuid4)

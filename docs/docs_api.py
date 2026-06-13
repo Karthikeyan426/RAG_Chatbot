@@ -4,6 +4,7 @@ from docs.models import doc_model
 from database_schema import docs, chunks
 from docs.helpers import doc_embedding_coversion, doc_text_extraction
 from sentence_transformers import SentenceTransformer
+from config import settings
 
 router = APIRouter(prefix="/users/user/docs", tags=["docs"])
 
@@ -22,7 +23,7 @@ async def uploadDoc(session: SessionDep, user_id: str = Form(...), document: Upl
        text = doc_text_extraction.extractText(uploadFile.file)
        extracted_chunks = doc_embedding_coversion.chunk_text(text)
 
-       model = SentenceTransformer("all-MiniLM-L6-v2")
+       model = SentenceTransformer("all-MiniLM-L6-v2", token = settings.hf_token)
        for chunk in extracted_chunks:
            converted_embedding = model.encode(chunk).tolist()
            chunk_obj = chunks(
