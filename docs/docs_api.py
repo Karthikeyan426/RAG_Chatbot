@@ -53,7 +53,7 @@ async def deleteDoc(doc_id: str, session: SessionDep, currentUser: str = Depends
     return {"message": "document deleted"}
         
 
-@router.post(status_code = 200)
+@router.post("",status_code = 200)
 async def getUserDocs(session: SessionDep, currentUser: str = Depends(get_current_user)):
     user_id = currentUser
     docs = session.get(docs, user_id)

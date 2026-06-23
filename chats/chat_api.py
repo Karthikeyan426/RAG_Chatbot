@@ -12,8 +12,8 @@ router = APIRouter(prefix='/users/user/chats', tags=['chats'])
 
 @router.post('/query', status_code = 200)
 async def processEnquery(requestData: question_model.QModel, session: SessionDep, currentUser: str = Depends(get_current_user)):
-
-    doc: docs = session.get(docs, id = requestData.doc_id)
+    id = requestData.doc_id
+    doc: docs = session.get(docs, requestData.doc_id)
     if not doc:
         raise HTTPException(status_code = 404, detail = "document not found")
     else:
