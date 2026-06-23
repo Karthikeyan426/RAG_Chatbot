@@ -1,16 +1,26 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Request, HTTPException
 from database_config import SessionDep
 from chats.models import question_model
-from database_schema import chats
+from database_schema import chats, docs
 from sentence_transformers import SentenceTransformer
 from sqlmodel import text
 from config import settings
 from groq import Groq
+from auth.current_user_extraction import get_current_user
 
 router = APIRouter(prefix='/users/user/chats', tags=['chats'])
 
 @router.post('/query', status_code = 200)
-async def processEnquery(requestData: question_model.QModel, session: SessionDep):
+async def processEnquery(requestData: question_model.QModel, session: SessionDep, currentUser: str = Depends(get_current_user)):
+
+    doc: docs = session.get(docs, id = requestData.doc_id)
+    if not doc:
+        raise HTTPException(status_code = 404, detail = "document not found")
+    else:
+        if doc.user_id != currentUser:
+            raise HTTPException(status_code = 401, detail = "unauthorized document")
+
+
     model = SentenceTransformer("all-MiniLM-L6-v2", token = settings.hf_token)
     qEmbedding = model.encode(requestData.question).tolist()
     similarQ = session.execute(
@@ -28,7 +38,7 @@ async def processEnquery(requestData: question_model.QModel, session: SessionDep
         chat = chats(
             doc_id= requestData.doc_id,
             question_content = requestData.question,
-            user_id = requestData.user_id,
+            user_id = currentUser,
             response_content = similarQ.response_content,
         )
         session.add(chat)
@@ -64,7 +74,7 @@ async def processEnquery(requestData: question_model.QModel, session: SessionDep
         receivedResponse = response.choices[0].message.content
         chat = chats(
             doc_id = requestData.doc_id,
-            user_id = requestData.user_id,
+            user_id = currentUser,
             question_content = requestData.question,
             question_embedding = qEmbedding,
             response_content = receivedResponse
@@ -80,9 +90,15 @@ async def processEnquery(requestData: question_model.QModel, session: SessionDep
     
 
 @router.delete('/{chat_id}',status_code = 200)
-async def deleteChat(chat_id: str, session: SessionDep):
+async def deleteChat(chat_id: str, session: SessionDep, currentUser: str = Depends(get_current_user)):
     id = chat_id
-    chat =   session.get(chats, id)
+    chat = session.get(chats, id)
+    if not chat:
+        raise HTTPException(status_code = 404, detail = "chat not found")
+    else:
+        if chat.user_id != currentUser:
+            raise HTTPException(status_code = 401, detail = "unauthorized chat")
+        
     session.delete(chat)
     session.commit()
     return {"message": "chat deleted", "id": id}
@@ -90,7 +106,13 @@ async def deleteChat(chat_id: str, session: SessionDep):
 
 
 @router.get('/{chat_id}', status_code = 200)
-async def getChat(chat_id: str, session: SessionDep):
+async def getChat(chat_id: str, session: SessionDep, currentUser: str = Depends(get_current_user)):
     id = chat_id
-    chat =   session.get(chats, id)
+    chat = session.get(chats, id)
+    if not chat:
+        raise HTTPException(status_code = 404, detail = "chat not found")
+    else:
+        if chat.user_id != currentUser:
+            raise HTTPException(status_code = 401, detail = "unauthorized chat")
+        
     return {"chat_q": chat.question_content, "chat_a": chat.response_content}

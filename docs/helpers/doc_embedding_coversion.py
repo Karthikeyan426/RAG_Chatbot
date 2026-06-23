@@ -4,5 +4,5 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50):
     while start < len(text):
         end = start + chunk_size
         chunks.append(text[start:end])
-        start = end - overlap  # overlap keeps context between chunks
+        start = end - overlap 
     return chunks

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from auth.current_user_extraction import get_current_user
 from database_config import SessionDep
 from docs.models import doc_model
 from database_schema import docs, chunks
@@ -9,12 +10,12 @@ from config import settings
 router = APIRouter(prefix="/users/user/docs", tags=["docs"])
 
 @router.post('/upload', status_code = 201)
-async def uploadDoc(session: SessionDep, user_id: str = Form(...), document: UploadFile = File(...)):
+async def uploadDoc(session: SessionDep, currentUser: str = Depends(get_current_user), document: UploadFile = File(...)):
     uploadFile = document
     if uploadFile.content_type != "application/pdf":
         raise HTTPException(status_code = 400, detail = "file type not supported")
     else:
-       doc = docs(doc_name = uploadFile.filename, user_id = user_id)
+       doc = docs(doc_name = uploadFile.filename, user_id = currentUser)
        session.add(doc)
        session.commit()
        session.refresh(doc)
@@ -39,11 +40,30 @@ async def uploadDoc(session: SessionDep, user_id: str = Form(...), document: Upl
        
 
 @router.delete('/{doc_id}', status_code = 200)
-async def deleteDoc(doc_id: str, session: SessionDep):
+async def deleteDoc(doc_id: str, session: SessionDep, currentUser: str = Depends(get_current_user)):
     id = doc_id
     doc = session.get(docs, id)
+    if not doc:
+        raise HTTPException(status_code = 404, detail = "document not found")
+    else:
+        if doc.user_id != currentUser:
+            raise HTTPException(status_code = 401, detail = "unauthorized document")
     session.delete(doc)
     session.commit()
     return {"message": "document deleted"}
         
-    
+
+@router.post(status_code = 200)
+async def getUserDocs(session: SessionDep, currentUser: str = Depends(get_current_user)):
+    user_id = currentUser
+    docs = session.get(docs, user_id)
+    if not docs:
+        return {
+            "docs_exists": False
+        }
+    else:
+        return {
+            "docs_exists": True,
+            "docs": docs
+        }
+

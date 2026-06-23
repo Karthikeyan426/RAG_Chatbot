@@ -1,0 +1,8 @@
+fastapi[standard]
+pydantic
+sqlmodel
+sentence_transformers
+pdfplumber
+groq
+pyjwt
+pwdlib[argon2]
