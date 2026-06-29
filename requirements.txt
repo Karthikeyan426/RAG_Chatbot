@@ -6,3 +6,4 @@ pdfplumber
 groq
 pyjwt
 pwdlib[argon2]
+pyscopg2

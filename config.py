@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     database_port: int
     groq_api_key: str
     hf_token: str
-    jwt_secret_key: str
+    jwt_secret: str
     jwt_algorithm: str
     jwt_token_expiry: int
     model_config = SettingsConfigDict(env_file = ".env")
