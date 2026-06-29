@@ -6,5 +6,5 @@ pdfplumber
 groq
 pyjwt
 pwdlib[argon2]
-psycopg2
+psycopg2-binary
 pgvector
