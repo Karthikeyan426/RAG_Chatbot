@@ -7,6 +7,7 @@ from sqlmodel import text
 from config import settings
 from groq import Groq
 from auth.current_user_extraction import get_current_user
+from embedding_model import model
 
 router = APIRouter(prefix='/users/user/chats', tags=['chats'])
 
@@ -21,7 +22,6 @@ async def processEnquery(requestData: question_model.QModel, session: SessionDep
             raise HTTPException(status_code = 401, detail = "unauthorized document")
 
 
-    model = SentenceTransformer("all-MiniLM-L6-v2", token = settings.hf_token)
     qEmbedding = model.encode(requestData.question).tolist()
     similarQ = session.execute(
         text("""

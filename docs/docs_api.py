@@ -4,7 +4,7 @@ from database_config import SessionDep
 from docs.models import doc_model
 from database_schema import docs, chunks
 from docs.helpers import doc_embedding_coversion, doc_text_extraction
-from sentence_transformers import SentenceTransformer
+from embedding_model import model
 from config import settings
 
 router = APIRouter(prefix="/users/user/docs", tags=["docs"])
@@ -23,17 +23,25 @@ async def uploadDoc(session: SessionDep, currentUser: str = Depends(get_current_
 
        text = doc_text_extraction.extractText(uploadFile.file)
        extracted_chunks = doc_embedding_coversion.chunk_text(text)
+       
+       embeddings = model.encode(
+        extracted_chunks,
+        batch_size = 32,
+        show_progress_bar = True
+       )
 
-       model = SentenceTransformer("all-MiniLM-L6-v2", token = settings.hf_token)
-       for chunk in extracted_chunks:
-           converted_embedding = model.encode(chunk).tolist()
-           chunk_obj = chunks(
-               doc_id = doc.id,
-               content = chunk,
-               embedding = converted_embedding,
-           )
-           session.add(chunk_obj)
-       session.commit()
+       print("saving chunks")
+       objs = []
+       for chunk, embedding in zip(extracted_chunks, embeddings):
+           objs.append(
+               chunks(
+                   doc_id=doc.id,
+                   content=chunk,
+                   embedding=embedding.tolist(),
+                   )
+                )
+           session.add_all(objs)
+           session.commit()
        return {"message": "document uploaded"}
 
        
