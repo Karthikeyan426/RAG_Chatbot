@@ -35,7 +35,7 @@ async def login(requestData: user_model.UserModel, session: SessionDep):
                 "sub": requestData.user_name,
                 "exp": datetime.now(timezone.utc) + timedelta(minutes = settings.jwt_token_expiry)
             }
-            access_token = jwt.encode(to_encode, settings.jwt_secret_key, algorithm = settings.jwt_algorithm)
+            access_token = jwt.encode(to_encode, settings.jwt_secret, algorithm = settings.jwt_algorithm)
             return {
                 "message": "login success",
                 "access_token": access_token,
